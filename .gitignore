@@ -1,0 +1,32 @@
+# DADOS SENSÍVEIS (NUNCA SUBIR)
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.key
+*.pem
+
+# PYTHON (Backend) 
+
+backend/venv/
+backend/env/
+backend/pycache/
+*.pyc
+*.pyo
+*.pyd
+
+# NODE.JS (Frontend)
+
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# SISTEMA OPERACIONAL
+
+.DS_Store
+Thumbs.db
