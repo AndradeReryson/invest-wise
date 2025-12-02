@@ -27,9 +27,8 @@ const InvestWiseApp = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const resultRef = useRef(null);
 
-  // --- CONFIGURAÇÃO DA API LOCAL (FastAPI) ---
-  // Aponta para o seu backend Python rodando localmente
-  const API_URL = "http://localhost:8000/gerar-recomendacao";
+  // --- CONFIGURAÇÃO DA API ---
+  const API_URL = "http://127.0.0.1:8000/gerar-recomendacao";
 
   // --- EFEITOS DE UI (Favicon e Título) ---
   useEffect(() => {
@@ -63,12 +62,10 @@ const InvestWiseApp = () => {
     try {
       console.log("Enviando dados para:", API_URL);
       
-      // Chamada direta para o seu backend Python
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",
-          // Não precisamos de Authorization aqui pois o backend local gerencia as chaves
         },
         body: JSON.stringify({
             nome: formData.nome,
@@ -76,7 +73,6 @@ const InvestWiseApp = () => {
             renda: formData.renda,
             capital: formData.capital,
             finalidade: formData.finalidade,
-            // Mapeando o campo do form 'aporte' para o esperado 'aporte_disponivel' do Python
             aporte_disponivel: formData.aporte, 
             enviarEmail: formData.enviarEmail
         })
@@ -90,13 +86,12 @@ const InvestWiseApp = () => {
       const data = await response.json();
       console.log("✅ Resposta recebida:", data);
 
-      // Atualiza a tela com o resultado
       setApiResult(data);
       setViewState('result');
 
     } catch (error) {
       console.error("❌ ERRO NO PROCESSO:", error);
-      setErrorMsg(error.message || "Erro ao conectar com o servidor local. Verifique se o backend está rodando.");
+      setErrorMsg(error.message || "Erro ao conectar com o servidor local. Verifique se o backend (uvicorn) está rodando.");
       setViewState('initial'); 
     } finally {
       console.groupEnd();
@@ -276,16 +271,25 @@ const InvestWiseApp = () => {
                                 <div key={index} className="bg-[#2a2a2a] bg-opacity-40 p-6 rounded-lg border-l-4 border-[#1DB954] hover:bg-opacity-60 transition-all">
                                     <h3 className="text-2xl font-bold text-[#1ED760] mb-4">{portfolioName}</h3>
                                     <ul className="space-y-4">
-                                        {typeof items === 'object' && items !== null ? (
-                                            Object.entries(items).map(([key, description]) => (
-                                                <li key={key} className="flex items-start gap-3">
-                                                    <span className="mt-1.5 min-w-[8px] min-h-[8px] rounded-full bg-white"></span>
-                                                    <span className="text-gray-200 text-base font-light leading-relaxed">{description}</span>
-                                                </li>
-                                            ))
-                                        ) : (
-                                            <li className="text-gray-200">{JSON.stringify(items)}</li>
-                                        )}
+                                        {/* CORREÇÃO DO ERRO: Verifica se o item é um objeto ou string */}
+                                        {Object.entries(items).map(([key, itemContent]) => (
+                                            <li key={key} className="flex items-start gap-3">
+                                                <span className="mt-1.5 min-w-[8px] min-h-[8px] rounded-full bg-white"></span>
+                                                <span className="text-gray-200 text-base font-light leading-relaxed">
+                                                    {typeof itemContent === 'object' && itemContent !== null ? (
+                                                        // Se for objeto, tentamos renderizar de forma amigável
+                                                        <>
+                                                           {itemContent.tipo && <strong className="text-white">{itemContent.tipo}: </strong>}
+                                                           {itemContent.descricao}
+                                                           {itemContent.percentual_ideal && <span className="text-[#1ED760] font-bold ml-1"> ({itemContent.percentual_ideal})</span>}
+                                                        </>
+                                                    ) : (
+                                                        // Se for string, renderiza normal
+                                                        itemContent
+                                                    )}
+                                                </span>
+                                            </li>
+                                        ))}
                                     </ul>
                                 </div>
                             ))}
